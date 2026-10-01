@@ -43,6 +43,11 @@ def load_optimized_atlas():
     return np.array(d["glyphs"], dtype=np.uint32)
 
 
+def load_v01_atlas():
+    d = json.load(open("/root/.openclaw/workspace/repos/atlas-forge/exports/atlas_v01.u32.json"))
+    return np.array(d["glyphs"], dtype=np.uint32)
+
+
 def load_null_atlas():
     rng = np.random.default_rng(1234)
     return rng.integers(0, 1 << 24, size=70, dtype=np.uint32)
@@ -104,7 +109,8 @@ def metrics(atlas):
 def main():
     atlases = {
         "liberation_mono": load_chiaroscuro_atlas(),
-        "optimized": load_optimized_atlas(),
+        "optimized_v0": load_optimized_atlas(),
+        "optimized_v01": load_v01_atlas(),
         "null_random": load_null_atlas(),
     }
     rng = np.random.default_rng(SEED)
@@ -122,16 +128,26 @@ def main():
             m = np.mean([mean_min_hamming(f, atlas) for f in frames[kind]])
             out["m5_scene_quantization"][name][kind] = round(float(m), 4)
 
-    # verdict per pre-registered rule
+    # verdict per pre-registered rule (v0 gate applied to both variants;
+    # selection = best M5 mean among variants passing G1+G2, tie -> higher M1)
     A = out["m5_scene_quantization"]["liberation_mono"]
-    B = out["m5_scene_quantization"]["optimized"]
-    wins = sum(1 for k in ("diagonal", "disk", "noise") if B[k] < A[k])
-    uniq_ok = out["atlases"]["optimized"]["unique"] >= out["atlases"]["liberation_mono"]["unique"]
+    candidates = {}
+    for name in ("optimized_v0", "optimized_v01"):
+        B = out["m5_scene_quantization"][name]
+        wins = sum(1 for k in ("diagonal", "disk", "noise") if B[k] < A[k])
+        uniq_ok = out["atlases"][name]["unique"] >= out["atlases"]["liberation_mono"]["unique"]
+        candidates[name] = {"wins": wins, "uniqueness_ok": uniq_ok,
+                            "m5_mean": round(float(np.mean(list(B.values()))), 4)}
+    passing = {n: c for n, c in candidates.items() if c["wins"] >= 2 and c["uniqueness_ok"]}
+    if passing:
+        best = sorted(passing, key=lambda n: (passing[n]["m5_mean"], -out["atlases"][n]["min_hamming"]))
+        chosen = best[0]
+    else:
+        chosen = None
     out["verdict"] = {
-        "m5_wins_vs_liberation": wins,
-        "uniqueness_ok": uniq_ok,
-        "rule": "SHIP iff wins>=2 AND uniqueness_ok",
-        "decision": "SHIP" if (wins >= 2 and uniq_ok) else "DO_NOT_SHIP",
+        "candidates": candidates,
+        "rule": "G1 wins>=2 AND G2 uniqueness; selection = lowest M5 mean, tie -> higher M1",
+        "chosen_for_integration": chosen,
     }
     print(json.dumps(out, indent=2))
     with open("/root/.openclaw/workspace/repos/atlas-forge/receipts/eval_receipt.json", "w") as f:
