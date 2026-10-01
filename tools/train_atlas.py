@@ -119,14 +119,14 @@ def main():
         glyphs.append(v)
     ink_out = [round(float(p_final[g].mean()), 4) for g in range(N)]
 
-    with open("exports/atlas_optimized.u32.json", "w") as f:
+    with open("/root/.openclaw/workspace/repos/atlas-forge/exports/atlas_optimized.u32.json", "w") as f:
         json.dump({"seed": SEED, "glyphs": glyphs, "ink": ink_out,
                    "epochs": EPOCHS, "loss_final": trace[-1]["loss"]}, f, indent=1)
-    with open("exports/atlas_optimized.js", "w") as f:
+    with open("/root/.openclaw/workspace/repos/atlas-forge/exports/atlas_optimized.js", "w") as f:
         f.write("// atlas-forge v0 optimized atlas — engine drop-in (70 glyphs, 4x6, bit=row*4+col)\n")
         f.write(f"// seed={SEED} epochs={EPOCHS} loss={trace[-1]['loss']}\n")
         f.write("const FONT_ATLAS_DATA = new Uint32Array([" + ", ".join(f"0x{v:06x}" for v in glyphs) + "]);\n")
-    with open("exports/training_trace.json", "w") as f:
+    with open("/root/.openclaw/workspace/repos/atlas-forge/exports/training_trace.json", "w") as f:
         json.dump({"seed": SEED, "trace": trace,
                    "seconds": round(time.time() - t0, 1)}, f, indent=1)
 

@@ -32,8 +32,9 @@ POP = np.array([bin(i).count("1") for i in range(256)], dtype=np.uint8)
 
 def load_chiaroscuro_atlas():
     src = open("/root/.openclaw/workspace/repos/chiaroscuro/js/font_atlas.js").read()
-    data = re.search(r"FONT_ATLAS_DATA\s*=\s*new Uint32Array\(\[([^\]]+)\)", src).group(1)
-    arr = [int(x.strip(), 0) for x in data.split(",") if x.strip()]
+    i = src.find("FONT_ATLAS_DATA")
+    m = re.match(r"\s*FONT_ATLAS_DATA\s*=\s*new Uint32Array\(\[([^\]]+)\]\)", src[i:])
+    arr = [int(x.strip(), 0) for x in m.group(1).split(",") if x.strip()]
     return np.array(arr[:70], dtype=np.uint32)          # first 70, engine order
 
 

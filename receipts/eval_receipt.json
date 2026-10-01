@@ -1,0 +1,43 @@
+{
+  "seed": 20261001,
+  "atlases": {
+    "liberation_mono": {
+      "unique": 64,
+      "min_hamming": 0,
+      "ink_ramp_r2": 0.4789
+    },
+    "optimized": {
+      "unique": 70,
+      "min_hamming": 2,
+      "ink_ramp_r2": 0.695
+    },
+    "null_random": {
+      "unique": 70,
+      "min_hamming": 3,
+      "ink_ramp_r2": 0.5128
+    }
+  },
+  "m5_scene_quantization": {
+    "liberation_mono": {
+      "diagonal": 7.4233,
+      "disk": 7.079,
+      "noise": 6.6417
+    },
+    "optimized": {
+      "diagonal": 4.6337,
+      "disk": 3.2643,
+      "noise": 6.4285
+    },
+    "null_random": {
+      "diagonal": 6.9766,
+      "disk": 6.9976,
+      "noise": 6.3191
+    }
+  },
+  "verdict": {
+    "m5_wins_vs_liberation": 3,
+    "uniqueness_ok": true,
+    "rule": "SHIP iff wins>=2 AND uniqueness_ok",
+    "decision": "SHIP"
+  }
+}
